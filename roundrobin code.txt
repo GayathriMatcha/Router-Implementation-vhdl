@@ -1,0 +1,463 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity round_robin is
+
+  port (
+    req : in  std_logic_vector(3 downto 0);  -- Request signal
+    gnt : buffer std_logic_vector(3 downto 0);  -- grant signal
+    clk : in  std_logic;                     -- system clock
+    rst : in  std_logic);                    -- async reset
+
+end round_robin;
+
+
+architecture arch of round_robin is
+
+type state is (s_idle,s0,s1,s2,s3);       -- State declaration
+signal present_state,next_state : state;  -- State container
+begin  -- arch
+
+  -- purpose: fixing the priority and grant signal assignment
+  -- type   : combinational
+  -- inputs : req
+  -- outputs: gnt
+  priority: process (present_state,req)
+  begin  -- process priority
+
+    case present_state is
+
+      when s_idle =>
+        if(req(0)='1')then
+          gnt<="0001";
+          next_state<=s0;
+        elsif req(1)='1' then
+          gnt<="0010";
+          next_state<=s1;
+        elsif req(2)='1' then
+          gnt<="0100";
+          next_state<=s2;
+        elsif req(3)='1' then
+          gnt<="1000";
+          next_state<=s3;
+        else
+            gnt<="0000";
+            next_state<=s_idle;
+        end if;
+
+      when s0 =>
+        if(req(1)='1')then
+          gnt<="0010";
+          next_state<=s1;
+        elsif req(2)='1' then
+          gnt<="0100";
+          next_state<=s2;
+        elsif req(3)='1' then
+          gnt<="1000";
+          next_state<=s3;
+        elsif req(0)='1' then
+          gnt<="0001";
+          next_state<=s0;
+        else
+          gnt<="0000";
+          next_state<=s_idle;
+        end if;
+
+        when s1 =>
+        if(req(2)='1')then
+          gnt<="0100";
+          next_state<=s2;
+        elsif req(3)='1' then
+          gnt<="1000";
+          next_state<=s3;
+        elsif req(0)='1' then
+          gnt<="0001";
+          next_state<=s0;
+        elsif req(1)='1' then
+          gnt<="0010";
+          next_state<=s1;
+        else
+          gnt<="0000";
+          next_state<=s_idle;
+        end if;
+
+        when s2 =>
+        if(req(3)='1')then
+          gnt<="1000";
+          next_state<=s3;
+        elsif req(0)='1' then
+          gnt<="0001";
+          next_state<=s0;
+        elsif req(1)='1' then
+          gnt<="0010";
+          next_state<=s1;
+        elsif req(2)='1' then
+          gnt<="0100";
+          next_state<=s2;
+        else
+          gnt<="0000";
+          next_state<=s_idle;
+        end if;
+
+        when s3 =>
+        if(req(0)='1')then
+          gnt<="0001";
+          next_state<=s0;
+        elsif req(1)='1' then
+          gnt<="0010";
+          next_state<=s1;
+        elsif req(2)='1' then
+          gnt<="0100";
+          next_state<=s2;
+        elsif req(3)='1' then
+          gnt<="1000";
+          next_state<=s3;
+        else
+            gnt<="0000";
+            next_state<=s_idle;
+        end if;
+         
+    end case;
+  end process priority;
+
+
+  -- purpose: State Assignment
+  -- type   : sequential
+  -- inputs : clk, rst, present_state
+  -- outputs: next_state
+
+
+  State_assignment: process (clk, rst)
+  begin  -- process State_assignment
+    if rst = '1' then                   -- asynchronous reset (active high)
+      present_state<=s_idle;
+    elsif clk'event and clk = '1' then  -- rising clock edge
+      present_state<=next_state;
+    end if;
+  end process State_assignment;
+
+
+-- purpose: Assertion_assignment
+  -- type   : combinational
+  -- inputs : gnt
+  -- outputs:
+  Assertion_assignment: process (gnt)
+  begin  -- process Assertion_assignment
+    if(gnt="0001")then
+      assert false report "Request 0 is granted" severity note;
+ 
+    elsif gnt="0010" then
+      assert false report "Request 1 is granted" severity note;
+ 
+    elsif gnt="0100" then
+      assert false report "Request 2 is granted" severity note;
+ 
+    elsif gnt="1000" then
+      assert false report "Request 3 is granted" severity note;
+    end if;
+  end process Assertion_assignment;
+end arch;
+
+
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.ALL;
+ 
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--USE ieee.numeric_std.ALL;
+ 
+ENTITY fifotb2 IS
+END fifotb2;
+ 
+ARCHITECTURE behavior OF fifotb2 IS 
+ 
+    -- Component Declaration for the Unit Under Test (UUT)
+ 
+    COMPONENT fifo
+    PORT(
+         clk : IN  std_logic;
+         reset : IN  std_logic;
+         din : IN  std_logic_vector(7 downto 0);
+         dout : OUT  std_logic_vector(7 downto 0);
+         rd : IN  std_logic;
+         wr : IN  std_logic;
+         empty : OUT  std_logic;
+         full : OUT  std_logic;
+         half : OUT  std_logic
+        );
+    END COMPONENT;
+    
+
+   --Inputs
+   signal clk : std_logic := '0';
+   signal reset : std_logic := '0';
+   signal din : std_logic_vector(7 downto 0) := (others => '0');
+   signal rd : std_logic := '0';
+   signal wr : std_logic := '0';
+
+ 	--Outputs
+   signal dout : std_logic_vector(7 downto 0);
+   signal empty : std_logic;
+   signal full : std_logic;
+   signal half : std_logic;
+
+   -- Clock period definitions
+   constant clk_period : time := 10 ns;
+ 
+BEGIN
+ 
+	-- Instantiate the Unit Under Test (UUT)
+   uut: fifo PORT MAP (
+          clk => clk,
+          reset => reset,
+          din => din,
+          dout => dout,
+          rd => rd,
+          wr => wr,
+          empty => empty,
+          full => full,
+          half => half
+        );
+
+   -- Clock process definitions
+   clk_process :process
+   begin
+		clk <= '0';
+		wait for clk_period/2;
+		clk <= '1';
+		wait for clk_period/2;
+   end process;
+ 
+
+   -- Stimulus process
+   stim_proc: process
+   begin		
+      -- hold reset state for 100 ns.
+      wait for 100 ns;	
+      reset <='1';
+         din <= "00100110";
+         rd <='1';
+         wr <= '0';
+			wait for 100 ns;	
+			reset <='0';
+         din <= "10100110";
+         rd <='1';
+         wr <= '0';
+			wait for 100 ns;	
+			reset <='0';
+         din <= "00101110";
+         rd <='0';
+         wr <= '0';
+			wait for 100 ns;	
+			reset <='0';
+         din <= "10100010";
+         rd <='1';
+         wr <= '0';
+			wait for 100 ns;	
+         
+      --wait for clk_period*10;
+
+      -- insert stimulus here 
+
+      wait;
+   end process;
+
+END;
+
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity fifo_elem is
+
+generic (width : integer:=8);
+port (
+	clk		: in std_logic;
+	reset	: in std_logic;
+
+	din		: in std_logic_vector(width-1 downto 0);
+	dout	: out std_logic_vector(width-1 downto 0);
+
+	rd		: in std_logic;
+	wr		: in std_logic;
+
+	rd_prev	: out std_logic;
+	full	: out std_logic
+);
+end fifo_elem;
+
+architecture rtl of fifo_elem is
+
+	signal buf		: std_logic_vector(width-1 downto 0);
+	signal f		: std_logic;
+
+begin
+
+	dout <= buf;
+
+process(clk, reset, f)
+
+begin
+
+	full <= f;
+
+	if (reset='1') then
+
+		buf <= (others => '0');
+		f <= '0';
+		rd_prev <= '0';
+
+	elsif rising_edge(clk) then
+
+		rd_prev <= '0';
+		if f='0' then
+			if wr='1' then
+				rd_prev <= '1';
+				buf <= din;
+				f <= '1';
+			end if;
+		else
+			if rd='1' then
+				f <= '0';
+			end if;
+		end if;
+
+	end if;
+
+end process;
+
+end rtl;
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity fifo is
+
+generic (width : integer := 8; depth : integer := 4; thres : integer := 2);
+port (
+	clk		: in std_logic;
+	reset	: in std_logic;
+
+	din		: in std_logic_vector(width-1 downto 0);
+	dout	: out std_logic_vector(width-1 downto 0);
+
+	rd		: in std_logic;
+	wr		: in std_logic;
+
+	empty	: out std_logic;
+	full	: out std_logic;
+	half	: out std_logic
+);
+end fifo ;
+
+
+architecture rtl of fifo is
+
+component fifo_elem is
+
+generic (width : integer);
+port (
+	clk		: in std_logic;
+	reset	: in std_logic;
+
+	din		: in std_logic_vector(width-1 downto 0);
+	dout	: out std_logic_vector(width-1 downto 0);
+
+	rd		: in std_logic;
+	wr		: in std_logic;
+
+	rd_prev	: out std_logic;
+	full	: out std_logic
+);
+end component;
+
+	signal r, w, rp, f	: std_logic_vector(depth-1 downto 0);
+	type d_array is array (0 to depth-1) of std_logic_vector(width-1 downto 0);
+	signal di, do		: d_array;
+	
+	
+
+begin
+
+
+	g1: for i in 0 to depth-1 generate
+
+		f1: fifo_elem generic map (width)
+			port map (clk, reset, di(i), do(i), r(i), w(i), rp(i), f(i));
+
+		x: if i<depth-1 generate
+			r(i) <= rp(i+1);
+			w(i+1) <= f(i);
+			di(i+1) <= do(i);
+		end generate;
+
+	end generate;
+
+	di(0) <= din;
+	dout <= do(depth-1);
+	w(0) <= wr;
+	r(depth-1) <= rd;
+
+	full <= f(0);
+	half <= f(depth-thres);
+	empty <= not f(depth-1);
+	
+end rtl;
+
+
+purpose: Assertion_assignment
+--  -- type   : combinational
+--  -- inputs : gnt
+--  -- outputs:
+--  Assertion_assignment1: process (gnt0)
+--  begin  -- process Assertion_assignment
+--    if(gnt0="001")then
+--      assert false report "Request 0 is granted" severity note;
+-- 
+--    elsif gnt0="010" then
+--      assert false report "Request 1 is granted" severity note;
+-- 
+--    elsif gnt0="100" then
+--      assert false report "Request 2 is granted" severity note;
+--		   end if;
+--   end process Assertion_assignment1;
+--	 Assertion_assignment2: process (gnt1)
+--  begin  -- process Assertion_assignment	
+--		if(gnt1="001")then
+--      assert false report "Request 0 is granted" severity note;
+-- 
+--    elsif gnt1="010" then
+--      assert false report "Request 1 is granted" severity note;
+-- 
+--    elsif gnt1="100" then
+--      assert false report "Request 2 is granted" severity note;
+--		   end if;
+--   end process Assertion_assignment2;
+-- Assertion_assignment3: process (gnt2)
+--  begin  -- process Assertion_assignment
+--		if(gnt2="001")then
+--      assert false report "Request 0 is granted" severity note;
+-- 
+--    elsif gnt2="010" then
+--      assert false report "Request 1 is granted" severity note;
+-- 
+--    elsif gnt2="100" then
+--      assert false report "Request 2 is granted" severity note;
+--		   end if;
+--   end process Assertion_assignment3;
+-- Assertion_assignment4: process (gnt3)
+--  begin  -- process Assertion_assignment
+--		if(gnt3="001")then
+--      assert false report "Request 0 is granted" severity note;
+-- 
+--    elsif gnt3="010" then
+--      assert false report "Request 1 is granted" severity note;
+-- 
+--    elsif gnt3="100" then
+--      assert false report "Request 2 is granted" severity note;
+-- 
+--    end if;
+--   end process Assertion_assignment4;

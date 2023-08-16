@@ -1,0 +1,957 @@
+controller
+
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity controller is
+    port ( clk, reset, Req, A, finish: in std_logic;
+           rst, load, Ack, Full, R, header: out std_logic);
+end entity;
+
+architecture cnt1 of controller is
+    type state is (s0, s1, s2, s3, s4);
+    signal c_state, n_state : state;
+begin
+ 
+    process (clk)
+    begin
+        if clk='1' and clk'event then
+            if reset='1' then
+                c_state <= s0;
+            else
+                c_state <= n_state;
+             end if;
+         end if;
+     end process;
+     
+     process (c_state, reset, Req, A, finish)
+     begin
+         n_state <= s0;
+         case c_state is
+             when s0=> if reset='0' then n_state <= s1;
+                      else n_state <= s0; end if;
+             when s1=> if Req='1' then n_state <= s2;
+                      else n_state <= s1; end if;
+             when s2=> if finish='0' then n_state <= s2;
+                      else n_state <= s3; end if;
+             when s3=> n_state <= s4;
+             when s4=> if A='0' then n_state <= s4;
+                      else n_state <= s1; end if;
+         end case;
+     end process;
+     
+     process (c_state, reset, Req, A, finish)
+     begin
+         rst <= '0';
+         load <= '0';
+         Ack <= '0';
+         Full <= '0';
+         R <= '0';
+         header <= '0';
+         
+         case c_state is
+             when s0=> if reset='1' then rst <= '1'; end if;
+             when s1=> if Req='1' then Full <= '1'; load <= '1'; header <= '1'; end if;
+             when s2=> if finish='0' then Full <= '1'; load <= '1';
+                      else Full <= '1'; load <= '1'; end if;
+             when s3=> Full <= '1'; R <= '1'; Ack <= '1';
+             when s4=> if A='0' then Full <= '1'; R <= '1'; Ack <= '1'; end if;
+         end case;
+         
+     end process;
+     
+ end architecture;
+
+
+
+counter
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity counter is
+    port (clk, rst, en: in std_logic; count: out integer:=0);
+end entity;
+
+architecture cnt1 of counter is
+begin
+    process (clk)
+        variable temp: integer := 0;
+    begin
+        if clk='1' and clk'event then
+            if rst='1' then temp := 0;
+            elsif en='1' then
+                if temp < 8 then
+                    temp := temp+1;
+                else
+                    temp := temp;
+                end if;
+            end if;
+        end if;
+        count <= temp;
+    end process;
+end architecture;
+
+datapath
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity datapath is
+    generic (packet: integer:=8);
+    port ( clk, rst, load1, load2, t, header: in std_logic; Datain: in std_logic_vector;
+           finish1: inout std_logic; Dataout: inout std_logic_vector;
+           PE0, PE1, PE2, PE3, PE4: inout std_logic:='0');
+end entity;
+
+architecture data1 of datapath is
+    signal count1, count2: integer:=0;
+    signal tail_flit: std_logic_vector(Dataout'range):= (Dataout'range => '1');
+    type memory is array (integer range<>) of std_logic_vector (datain'range);
+    signal buf: memory(0 to packet);
+    signal en1, en2, rst1, finish2, P0, P1, P2, P3, P4: std_logic:='0';
+begin
+  
+    finish1 <= '0' when rst='1' else '1' when (Datain = tail_flit) else '0';
+    finish2 <= '0' when rst='1' else '1' when (Dataout = tail_flit) else '0';
+    process (clk)
+    begin
+        if clk='1' and clk'event then
+            if (load1='1') then
+                if count1 > 0 then
+                    buf(count1) <= Datain;
+                else
+                    buf(count1) <= (Datain'range => '0');
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    c1: entity work.counter(cnt1) port map (clk, rst, en1, count1);
+    en1 <= not finish1 and load1;
+    en2 <= not finish2 and load2;
+    rst1 <= t or rst;
+    c2: entity work. counter(cnt1) port map (clk, rst1, en2, count2);
+    Dataout <= (Dataout'range => '0') when (rst='1') else buf(count2) when load2='1' else buf(0);
+    
+    process (Datain)
+    begin
+        P0 <= '0';
+        P1 <= '0';
+        P2 <= '0';
+        P3 <= '0';
+        P4 <= '0';
+        
+        case Datain(2 downto 0) is
+            when "000" => P0 <= '1';
+            when "001" => P1 <= '1';
+            when "010" => P2 <= '1';
+            when "011" => P3 <= '1';
+            when "100" => P4 <= '1';
+            when others => P0 <= '1';
+        end case;
+    end process;
+    
+    PE0 <= P0 when header='1' else PE0;
+    PE1 <= P1 when header='1' else PE1;
+    PE2 <= P2 when header='1' else PE2;
+    PE3 <= P3 when header='1' else PE3;
+    PE4 <= P4 when header='1' else PE4;
+    
+end architecture;
+
+ 
+mesh2
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity mesh2 is
+    generic (packet: integer :=8);
+    port (clk, reset, R_north, A_north, F_north, R_east, A_east, F_east, R_south, A_south, F_south, R_west, A_west, F_west: in std_logic; north, east, south, west: in std_logic_vector;
+          Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9: out std_logic_vector; PE1, PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9: inout std_logic_vector;
+          fin1, fin2, load1p, load2p, en1p, en2p: inout std_logic:='0';
+          count1, count2: inout integer:=0);
+end entity;
+
+architecture nine of mesh2 is
+    signal Req12, Req14, Req21, Req23, Req25, Req32, Req36, Req41, Req45, Req47, Req52, Req54, Req56, Req58, Req63, Req65, Req69, Req74, Req78, Req85, Req87, Req89, Req96, Req98:std_logic:='0';
+    signal Ack12, Ack14, Ack21, Ack23, Ack25, Ack32, Ack36, Ack41, Ack45, Ack47, Ack52, Ack54, Ack56, Ack58, Ack63, Ack65, Ack69, Ack74, Ack78, Ack85, Ack87, Ack89, Ack96, Ack98:std_logic:='0';
+    signal Full12, Full14, Full21, Full23, Full25, Full32, Full36, Full41, Full45, Full47, Full52, Full54, Full56, Full58, Full63, Full65, Full69, Full74, Full78, Full85, Full87, Full89, Full96, Full98:std_logic:= '0';
+    signal D1, D2, D3, D4, D5, D6, D7, D8, D9: std_logic_vector(Data1'range) := (Data1'range => '0');
+    
+begin
+    
+    sw1: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req41, Req21, R_south, '0', Ack41, Ack21, A_south, '0', Full41, Full21, F_south, '0', D4, D2, south, D1, Ack14, Ack12, open, open, Full14, Full12, open, open, Req14, Req12, open, open, D1, PE1);
+    sw2: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req52, Req32, '0', Req12, Ack52, Ack32, '0', Ack12, Full52, Full32, '0', Full12, D5, D3, D1, D1, Ack25, Ack23, open, Ack21, Full25, Full23, open, Full21, Req25, Req23, open, Req21, D2, PE2);
+    sw3: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req63, '0', '0', Req23, Ack63, '0', '0', Ack23, Full63, '0', '0', Full23, D6, D1, D1, D2, Ack36, open, open, Ack32, Full36, open, open, Full32, Req36, open, open, Req32, D3, PE3);
+    sw4: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req74, Req54, Req14, R_west, Ack74, Ack54, Ack14, A_west, Full74, Full54, Full14, F_west, D7, D5, D1, west, Ack47, Ack45, Ack41, open, Full47, Full45, Full41, open, Req47, Req45, Req41, open, D4, PE4);
+    sw5: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req85, Req65, Req25, Req45, Ack85, Ack65, Ack25, Ack45, Full85, Full65, Full25, Full45, D8, D6, D2, D4, Ack58, Ack56, Ack52, Ack54, Full58, Full56, Full52, Full54, Req58, Req56, Req52, Req54, D5, PE5);
+    sw6: entity work. switch4(sw) generic map (packet) port map (clk, reset, Req96, R_east, Req36, Req56, Ack96, A_east, Ack36, Ack56, Full96, F_east, Full36, Full56, D9, east, D3, D5, Ack69, open, Ack63, Ack65, Full69, open, Full63, Full65, Req69, open, Req63, Req65, D6, PE6);
+    sw7: entity work. switch4(sw) generic map (packet) port map (clk, reset, '0', Req87, Req47, '0', '0', Ack87, Ack47, '0', '0', Full87, Full47, '0', D1, D8, D4, D1, open, Ack78, Ack74, open, open, Full78, Full74, open, open, Req78, Req74, open, D7, PE7);
+    sw8: entity work. switch4(sw) generic map (packet) port map (clk, reset, '0', Req98, Req58, Req78, '0', Ack98, Ack58, Ack78, '0', Full98, Full58, Full78, D1, D9, D5, D7, open, Ack89, Ack85, Ack87, open, Full89, Full85, Full87, open, Req89, Req85, Req87, D8, PE8);
+    sw9: entity work. switch4(sw) generic map (packet) port map (clk, reset, R_north, '0', Req69, Req89, A_north, '0', Ack69, Ack89, F_north, '0', Full69, Full89, north, D1, D6, D9, open, open, Ack96, Ack98, open, open, Full96, Full98, open, open, Req96, Req98, D9, PE9);
+    
+    Data1 <= D1;
+    Data2 <= D2;
+    Data3 <= D3;
+    Data4 <= D4;
+    Data5 <= D5;
+    Data6 <= D6;
+    Data7 <= D7;
+    Data8 <= D8;
+    Data9 <= D9;
+    
+end architecture;
+
+mux5x1
+
+
+ library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity mux5to1 is
+    port (D0, D1, D2, D3, D4: in std_logic_vector; sel: in std_logic_vector (2 downto 0);
+          W: out std_logic_vector);
+end entity;
+
+architecture mux of mux5to1 is
+begin
+    process (sel, D0, D1, D2, D3, D4)
+    begin
+        W <= (W'range => '0');
+        case sel is
+            when "000" => W <= D0;
+            when "001" => W <= D1;
+            when "010" => W <= D2;
+            when "011" => W <= D3;
+            when "100" => W <= D4;
+            when others => W <= (W'range => 'Z');
+        end case;
+    end process;
+end architecture;
+
+
+pe3
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity PE3 is
+    generic (packet: integer:=8);
+    port ( clk, reset, re, Ack, Full: in std_logic;
+           PEin: in std_logic_vector;
+           Req, ac, f: out std_logic;
+           PEout: inout std_logic_vector);
+end entity;
+
+architecture element of PE3 is
+    signal count1, count2: integer:=0;
+    constant tail_flit: std_logic_vector(PEin'range):= (PEin'range => '1');
+    type memory is array (integer range<>) of std_logic_vector (PEin'range);
+    signal buf: memory(0 to packet);
+    signal finish1, fin2, rst, load1, load2, en1, en2: std_logic:='0';
+    
+    type state is (s0, s1, s2, s3, s4, s5, s6);
+    signal c_state, n_state : state;
+    
+begin
+    
+    c1: entity work.counter(cnt1) port map (clk, rst, en1, count1);
+    c2: entity work.counter(cnt1) port map (clk, rst, en2, count2);
+    
+    
+    process (clk)
+    begin
+        if clk='1' and clk'event then
+            if reset='1' then
+                c_state <= s0;
+            else
+                c_state <= n_state;
+             end if;
+         end if;
+     end process;
+     
+     process (c_state, reset, re, finish1, fin2, Full)
+     begin
+         n_state <= s0;
+         case c_state is
+             when s0=> if reset='0' then n_state <= s1;
+                      else n_state <= s0; end if;
+             when s1=> if re='1' then n_state <= s2;
+                      else n_state <= s1; end if;
+             when s2=> if finish1='0' then n_state <= s2;
+                      else n_state <= s3; end if;
+             when s3=> n_state <= s4;
+             when s4=> if Full='1' then n_state <= s4;
+                      else n_state <= s5; end if;
+             when s5=> n_state <= s6;
+             when s6=> if fin2='0' then n_state <= s6;
+                      else n_state <= s1; end if;
+         end case;
+     end process;
+     
+     process (c_state, reset, re, finish1, fin2, Full)
+     begin
+         rst <= '0';
+         load1 <= '0';
+         load2 <= '0';
+         Req <= '0';
+         ac <= '0';
+         f <= '0';
+         
+         case c_state is
+             when s0=> if reset='1' then rst <= '1'; end if;
+             when s1=> if re='1' then f <= '1'; load1 <= '1'; end if;
+             when s2=> if finish1='1' then f <= '1'; load1 <= '1'; 
+                      else f <= '1'; load1 <= '1'; end if;
+             when s3=> f <= '1'; ac <= '1';
+             when s4=> if Full='1' then f <= '1'; ac <= '1';
+                      else f <= '1'; end if;
+             when s5=> Req <= '1'; load2 <= '1'; f <= '1';
+             when s6=> if fin2='0' then f <= '1'; Req <= '1'; load2 <= '1'; end if;
+         end case;
+         
+     end process;
+     
+    process (clk)
+    begin
+        if clk='1' and clk'event then
+            if (load1='1') then
+                buf(count1) <= PEin;
+            end if;
+            
+            if buf(0)=(PEin'range => '0') then
+                buf(0)(0) <= '1';
+            elsif buf(0)(2 downto 0)= "100" then
+                buf(0) (2 downto 0) <= "011";
+            elsif buf(0)(2 downto 0)= "011" then
+                buf(0) (2 downto 0) <= "010";
+            end if;
+        end if;
+    end process;
+    
+    en1 <= not finish1 and load1;
+    en2 <= not fin2 and load2;
+    
+    PEout <= (PEout'range => '0') when (rst='1') else buf(count2) when load2='1' else unaffected;
+    finish1 <= '0' when rst='1' or (PEin /= tail_flit) else '1';
+    fin2 <= '0' when rst='1' else '1' when (PEout=tail_flit);
+    
+     
+ end architecture;
+
+switch4
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity switch4 is
+    generic (packet: integer :=8);
+    port (clk, reset, Req1, Req2, Req3, Req4, ac1, ac2, ac3, ac4, f1, f2, f3, f4: in std_logic;
+           Datain1, Datain2, Datain3, Datain4: in std_logic_vector;
+           Ack1, Ack2, Ack3, Ack4, Full1, Full2, Full3, Full4, re1, re2, re3, re4: out std_logic;
+           Dataout: inout std_logic_vector; PEout: inout std_logic_vector);
+end entity;
+
+architecture sw of switch4 is
+    signal re0, ac0, f0, Req0, Ack0, Full0: std_logic;
+    signal finish: std_logic:='0';
+    signal sel: std_logic_vector(2 downto 0):= "000";
+    signal R0, R1, R2, R3, R4, PE0, PE1, PE2, PE3, PE4, A0, A1, A2, A3, A4: std_logic:='0';
+    signal Dataout0, Dataout1, Dataout2, Dataout3, Dataout4: std_logic_vector(Dataout'range):= (dataout'range => '0');
+    signal t0, t1, t2, t3, t4: std_logic:='0';
+    signal rst, rst0,rst1, rst2, rst3, rst4: std_logic:='1'; 
+    signal header0, header1, header2, header3, header4: std_logic:='0';
+    signal load0, load1, load2, load3, load4, en0, en1, en2, en3, en4, finish0, finish1, finish2, finish3, finish4: std_logic:='0';
+    signal P00, p10, p20, p30, p40, P01, p11, p21, p31, p41, P02, p12, p22, p32, p42, P03, p13, p23, p33, p43, P04, p14, p24, p34, p44: std_logic:='0';
+    
+begin
+    
+    cont: entity work. sw_controller2 (cnt1) port map (clk, reset, PE0, PE1, PE2, PE3, PE4, R0, R1, R2, R3, R4, ac0, ac1, ac2, ac3, ac4, F0, F1, F2, F3, F4, rst, A0, A1, A2, A3, A4, re0, re1, re2, re3, re4, sel, t0, t1, t2, t3, t4);
+    data: entity work. sw_datapath2 (data1) port map (rst, t0, t1, t2, t3, t4, sel, Dataout0, Dataout1, Dataout2, Dataout3, Dataout4, Dataout);
+    
+    Pro_ele: entity work. PE3(element) port map (clk, reset, re0, Ack0, Full0, Dataout, Req0, ac0, f0, PEout); 
+    
+    cont0: entity work. controller (cnt1) port map (clk, reset, Req0, A0, finish0, rst0, load0, Ack0, Full0, R0, header0);
+    data0: entity work. datapath (data1) generic map (packet) port map (clk, rst0, load0, R0, t0, header0, PEout, finish0, Dataout0, P00, p10, p20, p30, p40);
+    
+    cont1: entity work. controller (cnt1) port map (clk, reset, Req1, A1, finish1, rst1, load1, Ack1, Full1, R1, header1);
+    data1: entity work. datapath (data1) generic map (packet) port map (clk, rst1, load1, R1, t1, header1, Datain1, finish1, Dataout1, P01, p11, p21, p31, p41);
+    
+    cont2: entity work. controller (cnt1) port map (clk, reset, Req2, A2, finish2, rst2, load2, Ack2, Full2, R2, header2);
+    data2: entity work. datapath (data1) generic map (packet) port map (clk, rst2, load2, R2, t2, header2, Datain2, finish2, Dataout2, P02, p12, p22, p32, p42);
+    
+    cont3: entity work. controller (cnt1) port map (clk, reset, Req3, A3, finish3, rst3, load3, Ack3, Full3, R3, header3);
+    data3: entity work. datapath (data1) generic map (packet) port map (clk, rst3, load3, R3, t3, header3, Datain3, finish3, Dataout3, P03, p13, p23, p33, p43);
+    
+    cont4: entity work. controller (cnt1) port map (clk, reset, Req4, A4, finish4, rst4, load4, Ack4, Full4, R4, header4);
+    data4: entity work. datapath (data1) generic map (packet) port map (clk, rst4, load4, R4, t4, header4, Datain4, finish4, Dataout4, P04, p14, p24, p34, p44);
+ 
+    PE0 <= p00 when R0='1' else p01 when R1='1' else p02 when R2='1' else p03 when R3='1' else p04 when R4='1' else '0';
+    PE1 <= p10 when R0='1' else p11 when R1='1' else p12 when R2='1' else p13 when R3='1' else p14 when R4='1' else '0';
+    PE2 <= p20 when R0='1' else p21 when R1='1' else p22 when R2='1' else p23 when R3='1' else p24 when R4='1' else '0';
+    PE3 <= p30 when R0='1' else p31 when R1='1' else p32 when R2='1' else p33 when R3='1' else p34 when R4='1' else '0';
+    PE4 <= p40 when R0='1' else p41 when R1='1' else p42 when R2='1' else p43 when R3='1' else p44 when R4='1' else '0';
+        
+end architecture;
+
+
+sw controller
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity sw_controller2 is
+    port ( clk, reset, PE0, PE1, PE2, PE3, PE4, R0, R1, R2, R3, R4, Ack0, Ack1, Ack2, Ack3, Ack4, F0, F1, F2, F3, F4: in std_logic;
+           rst, A0, A1, A2, A3, A4, req0, req1, req2, req3, req4: out std_logic; sel: out std_logic_vector(2 downto 0); t0, t1, t2, t3, t4: out std_logic);
+end entity;
+
+architecture cnt1 of sw_controller2 is
+    type state is (s0, s1, s20, s21, s22, s23, s24, s201, s202, s203, s204, s210, s212, s213, s214, s220, s221, s223, s224, s230, s231, s232, s234, s240, s241, s242, s243);
+    signal c_state, n_state : state;
+begin
+ 
+    process (clk)
+    begin
+        if clk='1' and clk'event then
+            if reset='1' then
+                c_state <= s0;
+            else
+                c_state <= n_state;
+             end if;
+         end if;
+     end process;
+     
+     process (c_state, PE0, PE1, PE2, PE3, PE4, R0, R1, R2, R3, R4, Ack0, Ack1, Ack2, Ack3, Ack4, F0, F1, F2, F3, F4)
+     begin
+         n_state <= s0;
+         case c_state is
+             
+             when s0=> if reset='0' then n_state <= s1;
+                      else n_state <= s0; end if;
+             when s1=> if (R0='0' and R1='0' and R2='0' and R3='0' and R4='0') then n_state <= s1;
+                      elsif R0='1' then n_state <= s20;
+                      elsif R1='1' then n_state <= s21;
+                      elsif R2='1' then n_state <= s22;
+                      elsif R3='1' then n_state <= s23;
+                      elsif R4='1' then n_state <= s24; end if;
+             when s20=>
+                      if (PE1='1' and F1='0') then n_state <= s201;
+                      elsif (PE2='1' and F2='0') then n_state <= s202;
+                      elsif (PE3='1' and F3='0') then n_state <= s203;
+                      elsif (PE4='1' and F4='0') then n_state <= s204;
+                      else n_state <= s20;
+                      end if;
+             when s21=>
+                      if (PE0='1' and F0='0') then n_state <= s210;
+                      elsif (PE2='1' and F2='0') then n_state <= s212;
+                      elsif (PE3='1' and F3='0') then n_state <= s213;
+                      elsif (PE4='1' and F4='0') then n_state <= s214;
+                      else n_state <= s21;
+                      end if;
+             when s22=>
+                      if (PE0='1' and F0='0') then n_state <= s220;
+                      elsif (PE1='1' and F1='0') then n_state <= s221;
+                      elsif (PE3='1' and F3='0') then n_state <= s223;
+                      elsif (PE4='1' and F4='0') then n_state <= s224;
+                      else n_state <= s22;
+                      end if;
+             when s23=>
+                      if (PE0='1' and F0='0') then n_state <= s230;
+                      elsif (PE1='1' and F1='0') then n_state <= s231;
+                      elsif (PE2='1' and F2='0') then n_state <= s232;
+                      elsif (PE4='1' and F4='0') then n_state <= s234;
+                      else n_state <= s23;
+                      end if;
+             when s24=>
+                      if (PE0='1' and F0='0') then n_state <= s240;
+                      elsif (PE1='1' and F1='0') then n_state <= s241;
+                      elsif (PE2='1' and F2='0') then n_state <= s242;
+                      elsif (PE3='1' and F3='0') then n_state <= s243;
+                      else n_state <= s24;
+                      end if;
+             when s201=>
+                      if Ack1='0' then n_state <= s201; else n_state <= s1; end if;
+             when s202=>
+                      if Ack2='0' then n_state <= s202; else n_state <= s1; end if;
+             when s203=>
+                      if Ack3='0' then n_state <= s203; else n_state <= s1; end if;
+             when s204=>
+                      if Ack4='0' then n_state <= s204; else n_state <= s1; end if;
+             when s210=>
+                      if Ack0='0' then n_state <= s210; else n_state <= s1; end if;
+             when s212=>
+                      if Ack2='0' then n_state <= s212; else n_state <= s1; end if;
+             when s213=>
+                      if Ack3='0' then n_state <= s213; else n_state <= s1; end if;
+             when s214=>
+                      if Ack4='0' then n_state <= s214; else n_state <= s1; end if;
+             when s220=>
+                      if Ack0='0' then n_state <= s220; else n_state <= s1; end if;
+             when s221=>
+                      if Ack1='0' then n_state <= s221; else n_state <= s1; end if;
+             when s223=>
+                      if Ack3='0' then n_state <= s223; else n_state <= s1; end if;
+             when s224=>
+                      if Ack4='0' then n_state <= s224; else n_state <= s1; end if;
+             when s230=>
+                      if Ack0='0' then n_state <= s230; else n_state <= s1; end if;
+             when s231=>
+                      if Ack1='0' then n_state <= s231; else n_state <= s1; end if;
+             when s232=>
+                      if Ack2='0' then n_state <= s232; else n_state <= s1; end if;
+             when s234=>
+                      if Ack4='0' then n_state <= s234; else n_state <= s1; end if;
+             when s240=>
+                      if Ack0='0' then n_state <= s240; else n_state <= s1; end if;
+             when s241=>
+                      if Ack1='0' then n_state <= s241; else n_state <= s1; end if;
+             when s242=>
+                      if Ack2='0' then n_state <= s242; else n_state <= s1; end if;
+             when s243=>
+                      if Ack3='0' then n_state <= s243; else n_state <= s1;  end if;
+         end case;
+     end process;
+     
+     process (c_state, PE0, PE1, PE2, PE3, PE4, R0, R1, R2, R3, R4, Ack0, Ack1, Ack2, Ack3, Ack4, F0, F1, F2, F3, F4)
+     begin
+         
+         rst <='0';
+         A0 <='0';
+         A1 <='0';
+         A2 <='0';
+         A3 <='0';
+         A4 <='0';
+         req0 <='0';
+         req1 <='0';
+         req2 <='0';
+         req3 <='0';
+         req4 <='0';
+         sel <= (others => '-');
+         t0 <= '0'; t1 <= '0'; t2 <= '0'; t3 <= '0'; t4 <= '0';
+         
+         case c_state is
+             when s0=> if reset='1' then rst <= '1'; end if;
+             when s1=> t0 <= '0';
+             when s20=>
+                 if (PE1='1' and F1='0') or (PE2='1' and F2='0') or (PE3='1' and F3='0') or (PE4='1' and F4='0') then t0 <= '1'; end if;
+             when s21=> 
+                 if (PE0='1' and F0='0') or (PE2='1' and F2='0') or (PE3='1' and F3='0') or (PE4='1' and F4='0') then t1 <= '1'; end if;
+             when s22=>
+                 if (PE0='1' and F0='0') or (PE1='1' and F1='0') or (PE3='1' and F3='0') or (PE4='1' and F4='0') then t2 <= '1'; end if;
+             when s23=>
+                 if (PE0='1' and F0='0') or (PE1='1' and F1='0') or (PE2='1' and F2='0') or (PE4='1' and F4='0') then t3 <= '1'; end if;
+             when s24=>
+                 if (PE0='1' and F0='0') or (PE1='1' and F1='0') or (PE2='1' and F2='0') or (PE3='1' and F3='0') then t4 <= '1'; end if;
+                 
+             when s201=> if ack1='1' then A0 <= '1'; sel <= "000"; else req1 <= '1'; sel <= (others=> '0'); end if;
+             when s202=> if ack2='1' then A0 <= '1'; sel <= "000"; else req2 <= '1'; sel <= (others=> '0'); end if;
+             when s203=> if ack3='1' then A0 <= '1'; sel <= "000"; else req3 <= '1'; sel <= (others=> '0'); end if;
+             when s204=> if ack4='1' then A0 <= '1'; sel <= "000"; else req4 <= '1'; sel <= (others=> '0'); end if;
+                 
+             when s210=> if ack0='1' then A1 <= '1'; sel <= "001"; else req0 <= '1'; sel <= (0 =>'1', others=> '0'); end if;
+             when s212=> if ack2='1' then A1 <= '1'; sel <= "001"; else req2 <= '1'; sel <= (0 =>'1', others=> '0'); end if;
+             when s213=> if ack3='1' then A1 <= '1'; sel <= "001"; else req3 <= '1'; sel <= (0 =>'1', others=> '0'); end if;
+             when s214=> if ack4='1' then A1 <= '1'; sel <= "001"; else req4 <= '1'; sel <= (0 =>'1', others=> '0'); end if;
+                 
+             when s220=> if ack0='1' then A2 <= '1'; sel <= "010"; else req0 <= '1'; sel <= (1 =>'1', others=> '0'); end if;
+             when s221=> if ack1='1' then A2 <= '1'; sel <= "010"; else req1 <= '1'; sel <= (1 =>'1', others=> '0'); end if;
+             when s223=> if ack3='1' then A2 <= '1'; sel <= "010"; else req3 <= '1'; sel <= (1 =>'1', others=> '0'); end if;
+             when s224=> if ack4='1' then A2 <= '1'; sel <= "010"; else req4 <= '1'; sel <= (1 =>'1', others=> '0'); end if;
+                 
+             when s230=> if ack0='1' then A3 <= '1'; sel <= "011"; else req0 <= '1'; sel <= (2 => '0', others => '1'); end if;
+             when s231=> if ack1='1' then A3 <= '1'; sel <= "011"; else req1 <= '1'; sel <= (2 => '0', others => '1'); end if;
+             when s232=> if ack2='1' then A3 <= '1'; sel <= "011"; else req2 <= '1'; sel <= (2 => '0', others => '1'); end if;
+             when s234=> if ack4='1' then A3 <= '1'; sel <= "011"; else req4 <= '1'; sel <= (2 => '0', others => '1'); end if;
+                 
+             when s240=> if ack0='1' then A4 <= '1'; sel <= "100"; else req0 <= '1'; sel <= (2 => '1', others => '0'); end if;
+             when s241=> if ack1='1' then A4 <= '1'; sel <= "100"; else req1 <= '1'; sel <= (2 => '1', others => '0'); end if;
+             when s242=> if ack2='1' then A4 <= '1'; sel <= "100"; else req2 <= '1'; sel <= (2 => '1', others => '0'); end if;
+             when s243=> if ack3='1' then A4 <= '1'; sel <= "100"; else req3 <= '1'; sel <= (2 => '1', others => '0'); end if;
+
+         end case;
+     end process;
+ end architecture;
+
+sw datapath
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity sw_datapath2 is
+    port ( rst, R0, R1, R2, R3, R4: in std_logic; sel: in std_logic_vector(2 downto 0);
+           Dataout0, Dataout1, Dataout2, Dataout3, Dataout4: in std_logic_vector;
+           Dataout: out std_logic_vector);
+end entity;
+
+architecture data1 of sw_datapath2 is
+    signal mux_out: std_logic_vector (Dataout'range);
+begin
+    m1: entity work. mux5to1 (mux) port map (Dataout0, Dataout1, Dataout2, Dataout3, Dataout4, sel, mux_out);
+    Dataout <= (Dataout'range => '0') when rst='1' else mux_out;
+          
+end architecture;
+
+testbench
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity test2 is end entity;
+
+architecture testbench of test2 is
+    signal clk, reset, R_south, R_north, R_west, R_east: std_logic:='0';
+    signal south, north, west, east: std_logic_vector(7 downto 0):= (others => '0');
+    signal Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9: std_logic_vector(7 downto 0):= (others => '0');
+    signal PE1, PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9: std_logic_vector(7 downto 0):= (others => '0');
+    signal A_north, F_north, A_east, F_east, A_south, F_south, A_west, F_west: std_logic:='0';
+    
+begin
+    mesh: entity work. mesh2 (nine) generic map (8) port map (clk, reset, R_north, A_north, F_north, R_east, A_east, F_east, R_south, A_south, F_south, R_west, A_west, F_west, north, east, south, west, Data1, Data2, Data3, Data4, Data5, Data6, Data7, Data8, Data9, PE1, PE2, PE3, PE4, PE5, PE6, PE7, PE8, PE9);
+    
+    clk <= not clk after 10 ns when now <= 2 us else '0';
+    
+    reset <= '1' after 2 ns, '0' after 22 ns, '1' after 1522 ns, '0' after 1562 ns;
+    
+    process
+    begin
+        wait for 7 ns; north<=(others => '0');
+        wait for 2 ns; east<=(4 => '1', 2 => '1', others => '0');
+        wait for 2 ns; west<=(6 downto 4 => '1', 1 => '1', others => '0');
+        wait for 2 ns; south<=(others => '0');
+        wait for 5 ns; R_south<='1';
+        wait for 40 ns;
+           R_south <= '0';
+           south<=(7 downto 3 => '1', 1 => '1', others => '0');
+           north <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait for 2 ns; south<=( 0 => '1', others => '0');
+        wait for 5 ns; R_south<='1';
+        wait for 40 ns;
+           R_south <= '0';
+           south<=(7 downto 3 => '1', 1 => '1', others => '0');
+           north <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait for 20 ns;
+           R_north <= '1';
+           south<=(4 => '1', 3 => '1', others => '0');
+           east <= (2 => '1', others => '0');
+        wait for 20 ns;
+           R_north <= '0';
+           south<=(6 => '1', 2 downto 0 => '1', others => '0');
+           north<=(6 => '1', 2 => '1', others => '0');
+           west <= (0 => '1', others => '0');
+        wait for 20 ns;
+           R_west <= '1';
+           south<=(7 => '1', 6 => '1', others => '0');
+           north<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           R_west <= '0';
+           south<=(5 => '1', 3 => '1', others => '0');
+           north<=(5 => '1', 3 => '1', others => '0');
+           west<=(4 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '1';
+           south<=(6 => '0', 4 => '0', others => '1');
+           north<=(7 => '1', 4 => '1', others => '0');
+           west<=(7 => '1', 2 => '1', others => '0');
+        wait for 20 ns;
+           R_east <= '0';
+           south<=(others => '1');
+           north<=(7 => '0', 2 => '0', others => '1');
+           west<=(6 downto 4 => '0', 2 => '0', others => '1');
+           east<=(6 downto 2 => '0', others => '1');
+        wait for 20 ns;
+           south<=(others => '0');
+           north<=(7 downto 5 => '0', others => '1');
+           west<=(7 downto 5 => '1', 2 => '1', others => '0');
+           east<=(6 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '1');
+           west<=(6 => '0', 1 => '0', others => '1');
+           east<=(7 => '1', 5 downto 1 => '1', others => '0');
+        wait for 20 ns;
+           north<=(others => '0');
+           west<=(4 downto 1 => '1', others => '0');
+           east<=(7 => '0', 4 downto 1 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '1');
+           east<=(6 => '0', 4 => '0', others => '1');
+        wait for 20 ns;
+           west<=(others => '0');
+           east<=(7 => '1', 4 downto 2 => '1', others => '0');
+        wait for 20 ns;
+           east<=(others => '1');
+        wait for 20 ns;
+           east<=(others => '0');
+        wait;
+    end process;
+end architecture;

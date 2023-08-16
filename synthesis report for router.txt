@@ -1,0 +1,709 @@
+Release 14.7 - xst P.20131013 (nt64)
+Copyright (c) 1995-2013 Xilinx, Inc.  All rights reserved.
+--> Parameter TMPDIR set to xst/projnav.tmp
+
+
+Total REAL time to Xst completion: 0.00 secs
+Total CPU time to Xst completion: 0.16 secs
+ 
+--> Parameter xsthdpdir set to xst
+
+
+Total REAL time to Xst completion: 0.00 secs
+Total CPU time to Xst completion: 0.16 secs
+ 
+--> Reading design: ROUTER_NOC.prj
+
+TABLE OF CONTENTS
+  1) Synthesis Options Summary
+  2) HDL Parsing
+  3) HDL Elaboration
+  4) HDL Synthesis
+       4.1) HDL Synthesis Report
+  5) Advanced HDL Synthesis
+       5.1) Advanced HDL Synthesis Report
+  6) Low Level Synthesis
+  7) Partition Report
+  8) Design Summary
+       8.1) Primitive and Black Box Usage
+       8.2) Device utilization summary
+       8.3) Partition Resource Summary
+       8.4) Timing Report
+            8.4.1) Clock Information
+            8.4.2) Asynchronous Control Signals Information
+            8.4.3) Timing Summary
+            8.4.4) Timing Details
+            8.4.5) Cross Clock Domains Report
+
+
+=========================================================================
+*                      Synthesis Options Summary                        *
+=========================================================================
+---- Source Parameters
+Input File Name                    : "ROUTER_NOC.prj"
+Ignore Synthesis Constraint File   : NO
+
+---- Target Parameters
+Output File Name                   : "ROUTER_NOC"
+Output Format                      : NGC
+Target Device                      : xc7a100t-3-csg324
+
+---- Source Options
+Top Module Name                    : ROUTER_NOC
+Automatic FSM Extraction           : YES
+FSM Encoding Algorithm             : Auto
+Safe Implementation                : No
+FSM Style                          : LUT
+RAM Extraction                     : Yes
+RAM Style                          : Auto
+ROM Extraction                     : Yes
+Shift Register Extraction          : YES
+ROM Style                          : Auto
+Resource Sharing                   : YES
+Asynchronous To Synchronous        : NO
+Shift Register Minimum Size        : 2
+Use DSP Block                      : Auto
+Automatic Register Balancing       : No
+
+---- Target Options
+LUT Combining                      : Auto
+Reduce Control Sets                : Auto
+Add IO Buffers                     : YES
+Global Maximum Fanout              : 100000
+Add Generic Clock Buffer(BUFG)     : 32
+Register Duplication               : YES
+Optimize Instantiated Primitives   : NO
+Use Clock Enable                   : Auto
+Use Synchronous Set                : Auto
+Use Synchronous Reset              : Auto
+Pack IO Registers into IOBs        : Auto
+Equivalent register Removal        : YES
+
+---- General Options
+Optimization Goal                  : Speed
+Optimization Effort                : 1
+Power Reduction                    : NO
+Keep Hierarchy                     : No
+Netlist Hierarchy                  : As_Optimized
+RTL Output                         : Yes
+Global Optimization                : AllClockNets
+Read Cores                         : YES
+Write Timing Constraints           : NO
+Cross Clock Analysis               : NO
+Hierarchy Separator                : /
+Bus Delimiter                      : <>
+Case Specifier                     : Maintain
+Slice Utilization Ratio            : 100
+BRAM Utilization Ratio             : 100
+DSP48 Utilization Ratio            : 100
+Auto BRAM Packing                  : NO
+Slice Utilization Ratio Delta      : 5
+
+=========================================================================
+
+
+=========================================================================
+*                          HDL Parsing                                  *
+=========================================================================
+Parsing VHDL file "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" into library work
+Parsing entity <ROUTER_NOC>.
+Parsing entity <fifo_elem>.
+Parsing architecture <rtl> of entity <fifo_elem>.
+Parsing entity <fifo>.
+Parsing architecture <rtl> of entity <fifo>.
+Parsing entity <vc_allocater>.
+Parsing architecture <arch> of entity <vc_allocater>.
+Parsing entity <crossbar>.
+Parsing architecture <mux> of entity <crossbar>.
+Parsing architecture <Behavioral> of entity <router_noc>.
+
+=========================================================================
+*                            HDL Elaboration                            *
+=========================================================================
+
+Elaborating entity <ROUTER_NOC> (architecture <Behavioral>) with generics from library <work>.
+WARNING:HDLCompiler:871 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 961: Using initial value "000" for s since it is never assigned
+WARNING:HDLCompiler:871 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 962: Using initial value "00000000" for p since it is never assigned
+WARNING:HDLCompiler:871 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 973: Using initial value "100" for j since it is never assigned
+WARNING:HDLCompiler:871 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 974: Using initial value "011" for k since it is never assigned
+
+Elaborating entity <fifo> (architecture <rtl>) with generics from library <work>.
+
+Elaborating entity <fifo_elem> (architecture <rtl>) with generics from library <work>.
+
+Elaborating entity <vc_allocater> (architecture <arch>) from library <work>.
+WARNING:HDLCompiler:92 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 536: gnt0 should be on the sensitivity list of the process
+WARNING:HDLCompiler:92 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" Line 539: gnt1 should be on the sensitivity list of the process
+
+Elaborating entity <crossbar> (architecture <mux>) from library <work>.
+
+=========================================================================
+*                           HDL Synthesis                               *
+=========================================================================
+
+Synthesizing Unit <ROUTER_NOC>.
+    Related source file is "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd".
+        width = 8
+INFO:Xst:3210 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" line 976: Output port <empty> of the instance <l1> is unconnected or connected to loadless signal.
+INFO:Xst:3210 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" line 976: Output port <full> of the instance <l1> is unconnected or connected to loadless signal.
+INFO:Xst:3210 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" line 976: Output port <half> of the instance <l1> is unconnected or connected to loadless signal.
+    Summary:
+	no macro.
+Unit <ROUTER_NOC> synthesized.
+
+Synthesizing Unit <fifo>.
+    Related source file is "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd".
+        width = 8
+        depth = 4
+        thres = 2
+INFO:Xst:3210 - "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd" line 152: Output port <rd_prev> of the instance <g1[0].f1> is unconnected or connected to loadless signal.
+    Summary:
+	no macro.
+Unit <fifo> synthesized.
+
+Synthesizing Unit <fifo_elem>.
+    Related source file is "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd".
+        width = 8
+    Found 8-bit register for signal <buf>.
+    Found 1-bit register for signal <f>.
+    Found 1-bit register for signal <rd_prev>.
+    Summary:
+	inferred  10 D-type flip-flop(s).
+	inferred   1 Multiplexer(s).
+Unit <fifo_elem> synthesized.
+
+Synthesizing Unit <vc_allocater>.
+    Related source file is "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd".
+    Found 5-bit register for signal <present_state2>.
+    Found 5-bit register for signal <present_state3>.
+    Found 5-bit register for signal <present_state40>.
+    Found 5-bit register for signal <present_state41>.
+    Found 5-bit register for signal <present_state42>.
+    Found 5-bit register for signal <present_state0>.
+INFO:Xst:1799 - State s0 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s1 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s2 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s3 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s4 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s5 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s6 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s7 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s8 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s9 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s10 is never reached in FSM <present_state40>.
+INFO:Xst:1799 - State s11 is never reached in FSM <present_state40>.
+    Found finite state machine <FSM_2> for signal <present_state40>.
+    -----------------------------------------------------------------------
+    | States             | 17                                             |
+    | Transitions        | 16                                             |
+    | Inputs             | 5                                              |
+    | Outputs            | 5                                              |
+    | Clock              | clk (rising_edge)                              |
+    | Reset              | rst (positive)                                 |
+    | Reset type         | asynchronous                                   |
+    | Reset State        | s_idle                                         |
+    | Power Up State     | s_idle                                         |
+    | Encoding           | auto                                           |
+    | Implementation     | LUT                                            |
+    -----------------------------------------------------------------------
+INFO:Xst:1799 - State s0 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s1 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s2 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s3 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s4 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s5 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s6 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s7 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s8 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s9 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s10 is never reached in FSM <present_state41>.
+INFO:Xst:1799 - State s11 is never reached in FSM <present_state41>.
+    Found finite state machine <FSM_3> for signal <present_state41>.
+    -----------------------------------------------------------------------
+    | States             | 17                                             |
+    | Transitions        | 16                                             |
+    | Inputs             | 5                                              |
+    | Outputs            | 5                                              |
+    | Clock              | clk (rising_edge)                              |
+    | Reset              | rst (positive)                                 |
+    | Reset type         | asynchronous                                   |
+    | Reset State        | s_idle                                         |
+    | Power Up State     | s_idle                                         |
+    | Encoding           | auto                                           |
+    | Implementation     | LUT                                            |
+    -----------------------------------------------------------------------
+INFO:Xst:1799 - State s0 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s1 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s2 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s3 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s4 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s5 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s6 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s7 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s8 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s9 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s10 is never reached in FSM <present_state42>.
+INFO:Xst:1799 - State s11 is never reached in FSM <present_state42>.
+    Found finite state machine <FSM_4> for signal <present_state42>.
+    -----------------------------------------------------------------------
+    | States             | 17                                             |
+    | Transitions        | 16                                             |
+    | Inputs             | 5                                              |
+    | Outputs            | 5                                              |
+    | Clock              | clk (rising_edge)                              |
+    | Reset              | rst (positive)                                 |
+    | Reset type         | asynchronous                                   |
+    | Reset State        | s_idle                                         |
+    | Power Up State     | s_idle                                         |
+    | Encoding           | auto                                           |
+    | Implementation     | LUT                                            |
+    -----------------------------------------------------------------------
+INFO:Xst:1799 - State s0 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s1 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s2 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s3 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s4 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s5 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s6 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s7 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s8 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s9 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s10 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s11 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s40 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s41 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s42 is never reached in FSM <present_state2>.
+INFO:Xst:1799 - State s43 is never reached in FSM <present_state2>.
+    Found finite state machine <FSM_0> for signal <present_state2>.
+    -----------------------------------------------------------------------
+    | States             | 17                                             |
+    | Transitions        | 1                                              |
+    | Inputs             | 1                                              |
+    | Outputs            | 1                                              |
+    | Clock              | clk (rising_edge)                              |
+    | Reset              | rst (positive)                                 |
+    | Reset type         | asynchronous                                   |
+    | Reset State        | s_idle                                         |
+    | Power Up State     | s_idle                                         |
+    | Encoding           | auto                                           |
+    | Implementation     | LUT                                            |
+    -----------------------------------------------------------------------
+INFO:Xst:1799 - State s0 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s1 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s2 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s3 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s4 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s5 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s6 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s7 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s8 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s9 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s10 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s11 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s40 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s41 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s42 is never reached in FSM <present_state3>.
+INFO:Xst:1799 - State s43 is never reached in FSM <present_state3>.
+    Found finite state machine <FSM_1> for signal <present_state3>.
+    -----------------------------------------------------------------------
+    | States             | 17                                             |
+    | Transitions        | 1                                              |
+    | Inputs             | 1                                              |
+    | Outputs            | 1                                              |
+    | Clock              | clk (rising_edge)                              |
+    | Reset              | rst (positive)                                 |
+    | Reset type         | asynchronous                                   |
+    | Reset State        | s_idle                                         |
+    | Power Up State     | s_idle                                         |
+    | Encoding           | auto                                           |
+    | Implementation     | LUT                                            |
+    -----------------------------------------------------------------------
+    Found 3-bit 4-to-1 multiplexer for signal <_n0500> created at line 194.
+    Found 5-bit 4-to-1 multiplexer for signal <_n0508> created at line 196.
+    Summary:
+	inferred   5 D-type flip-flop(s).
+	inferred  25 Multiplexer(s).
+	inferred   3 Finite State Machine(s).
+Unit <vc_allocater> synthesized.
+
+Synthesizing Unit <crossbar>.
+    Related source file is "F:\vhdldsd\ROUTER_NOC\ROUTER_NOC.vhd".
+    Found 1-bit tristate buffer for signal <W0<7>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<6>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<5>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<4>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<3>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<2>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<1>> created at line 866
+    Found 1-bit tristate buffer for signal <W0<0>> created at line 866
+    Found 1-bit tristate buffer for signal <W1<7>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<6>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<5>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<4>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<3>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<2>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<1>> created at line 878
+    Found 1-bit tristate buffer for signal <W1<0>> created at line 878
+    Found 1-bit tristate buffer for signal <W2<7>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<6>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<5>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<4>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<3>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<2>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<1>> created at line 890
+    Found 1-bit tristate buffer for signal <W2<0>> created at line 890
+    Found 1-bit tristate buffer for signal <W3<7>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<6>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<5>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<4>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<3>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<2>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<1>> created at line 902
+    Found 1-bit tristate buffer for signal <W3<0>> created at line 902
+    Found 1-bit tristate buffer for signal <W4<7>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<6>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<5>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<4>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<3>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<2>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<1>> created at line 914
+    Found 1-bit tristate buffer for signal <W4<0>> created at line 914
+    Summary:
+	inferred  24 Multiplexer(s).
+	inferred  40 Tristate(s).
+Unit <crossbar> synthesized.
+
+=========================================================================
+HDL Synthesis Report
+
+Macro Statistics
+# Registers                                            : 13
+ 1-bit register                                        : 8
+ 5-bit register                                        : 1
+ 8-bit register                                        : 4
+# Multiplexers                                         : 53
+ 1-bit 2-to-1 multiplexer                              : 28
+ 3-bit 2-to-1 multiplexer                              : 7
+ 3-bit 4-to-1 multiplexer                              : 1
+ 4-bit 2-to-1 multiplexer                              : 9
+ 5-bit 2-to-1 multiplexer                              : 7
+ 5-bit 4-to-1 multiplexer                              : 1
+# Tristates                                            : 40
+ 1-bit tristate buffer                                 : 40
+# FSMs                                                 : 3
+
+=========================================================================
+
+=========================================================================
+*                       Advanced HDL Synthesis                          *
+=========================================================================
+
+
+=========================================================================
+Advanced HDL Synthesis Report
+
+Macro Statistics
+# Registers                                            : 45
+ Flip-Flops                                            : 45
+# Multiplexers                                         : 49
+ 1-bit 2-to-1 multiplexer                              : 24
+ 3-bit 2-to-1 multiplexer                              : 7
+ 3-bit 4-to-1 multiplexer                              : 1
+ 4-bit 2-to-1 multiplexer                              : 9
+ 5-bit 2-to-1 multiplexer                              : 7
+ 5-bit 4-to-1 multiplexer                              : 1
+# FSMs                                                 : 3
+
+=========================================================================
+
+=========================================================================
+*                         Low Level Synthesis                           *
+=========================================================================
+Analyzing FSM <MFsm> for best encoding.
+Optimizing FSM <l2/FSM_2> on signal <present_state40[1:3]> with sequential encoding.
+--------------------
+ State  | Encoding
+--------------------
+ s_idle | 000
+ s0     | unreached
+ s1     | unreached
+ s2     | unreached
+ s3     | unreached
+ s4     | unreached
+ s5     | unreached
+ s6     | unreached
+ s7     | unreached
+ s8     | unreached
+ s9     | unreached
+ s10    | unreached
+ s11    | unreached
+ s40    | 100
+ s41    | 011
+ s42    | 010
+ s43    | 001
+--------------------
+Analyzing FSM <MFsm> for best encoding.
+Optimizing FSM <l2/FSM_3> on signal <present_state41[1:3]> with sequential encoding.
+--------------------
+ State  | Encoding
+--------------------
+ s_idle | 000
+ s0     | unreached
+ s1     | unreached
+ s2     | unreached
+ s3     | unreached
+ s4     | unreached
+ s5     | unreached
+ s6     | unreached
+ s7     | unreached
+ s8     | unreached
+ s9     | unreached
+ s10    | unreached
+ s11    | unreached
+ s40    | 100
+ s41    | 011
+ s42    | 010
+ s43    | 001
+--------------------
+Analyzing FSM <MFsm> for best encoding.
+Optimizing FSM <l2/FSM_4> on signal <present_state42[1:3]> with sequential encoding.
+--------------------
+ State  | Encoding
+--------------------
+ s_idle | 000
+ s0     | unreached
+ s1     | unreached
+ s2     | unreached
+ s3     | unreached
+ s4     | unreached
+ s5     | unreached
+ s6     | unreached
+ s7     | unreached
+ s8     | unreached
+ s9     | unreached
+ s10    | unreached
+ s11    | unreached
+ s40    | 100
+ s41    | 011
+ s42    | 010
+ s43    | 001
+--------------------
+WARNING:Xst:1293 - FF/Latch <present_state0_2> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state0_3> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state0_4> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state40_FSM_FFd3> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state40_FSM_FFd2> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state41_FSM_FFd3> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state41_FSM_FFd2> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state42_FSM_FFd3> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+WARNING:Xst:1896 - Due to other FF/Latch trimming, FF/Latch <present_state42_FSM_FFd2> has a constant value of 0 in block <vc_allocater>. This FF/Latch will be trimmed during the optimization process.
+
+Optimizing unit <ROUTER_NOC> ...
+
+Optimizing unit <fifo_elem> ...
+
+Optimizing unit <vc_allocater> ...
+WARNING:Xst:2677 - Node <l1/g1[0].f1/rd_prev> of sequential type is unconnected in block <ROUTER_NOC>.
+WARNING:Xst:2677 - Node <l2/present_state0_1> of sequential type is unconnected in block <ROUTER_NOC>.
+WARNING:Xst:2677 - Node <l2/present_state0_0> of sequential type is unconnected in block <ROUTER_NOC>.
+
+Mapping all equations...
+Building and optimizing final netlist ...
+Found area constraint ratio of 100 (+ 5) on block ROUTER_NOC, actual ratio is 0.
+
+Final Macro Processing ...
+
+=========================================================================
+Final Register Report
+
+Macro Statistics
+# Registers                                            : 39
+ Flip-Flops                                            : 39
+
+=========================================================================
+
+=========================================================================
+*                           Partition Report                            *
+=========================================================================
+
+Partition Implementation Status
+-------------------------------
+
+  No Partitions were found in this design.
+
+-------------------------------
+
+=========================================================================
+*                            Design Summary                             *
+=========================================================================
+
+Top Level Output File Name         : ROUTER_NOC.ngc
+
+Primitive and Black Box Usage:
+------------------------------
+# BELS                             : 40
+#      GND                         : 1
+#      LUT2                        : 3
+#      LUT3                        : 4
+#      LUT4                        : 32
+# FlipFlops/Latches                : 39
+#      FDC                         : 39
+# Clock Buffers                    : 1
+#      BUFGP                       : 1
+# IO Buffers                       : 51
+#      IBUF                        : 11
+#      OBUF                        : 40
+
+Device utilization summary:
+---------------------------
+
+Selected Device : 7a100tcsg324-3 
+
+
+Slice Logic Utilization: 
+ Number of Slice Registers:              39  out of  126800     0%  
+ Number of Slice LUTs:                   39  out of  63400     0%  
+    Number used as Logic:                39  out of  63400     0%  
+
+Slice Logic Distribution: 
+ Number of LUT Flip Flop pairs used:     39
+   Number with an unused Flip Flop:       0  out of     39     0%  
+   Number with an unused LUT:             0  out of     39     0%  
+   Number of fully used LUT-FF pairs:    39  out of     39   100%  
+   Number of unique control sets:         1
+
+IO Utilization: 
+ Number of IOs:                          52
+ Number of bonded IOBs:                  52  out of    210    24%  
+
+Specific Feature Utilization:
+ Number of BUFG/BUFGCTRLs:                1  out of     32     3%  
+
+---------------------------
+Partition Resource Summary:
+---------------------------
+
+  No Partitions were found in this design.
+
+---------------------------
+
+
+=========================================================================
+Timing Report
+
+NOTE: THESE TIMING NUMBERS ARE ONLY A SYNTHESIS ESTIMATE.
+      FOR ACCURATE TIMING INFORMATION PLEASE REFER TO THE TRACE REPORT
+      GENERATED AFTER PLACE-and-ROUTE.
+
+Clock Information:
+------------------
+-----------------------------------+------------------------+-------+
+Clock Signal                       | Clock buffer(FF name)  | Load  |
+-----------------------------------+------------------------+-------+
+clk                                | BUFGP                  | 39    |
+-----------------------------------+------------------------+-------+
+
+Asynchronous Control Signals Information:
+----------------------------------------
+No asynchronous control signals found in this design
+
+Timing Summary:
+---------------
+Speed Grade: -3
+
+   Minimum period: 1.027ns (Maximum Frequency: 974.184MHz)
+   Minimum input arrival time before clock: 0.737ns
+   Maximum output required time after clock: 0.654ns
+   Maximum combinational path delay: No path found
+
+Timing Details:
+---------------
+All values displayed in nanoseconds (ns)
+
+=========================================================================
+Timing constraint: Default period analysis for Clock 'clk'
+  Clock period: 1.027ns (frequency: 974.184MHz)
+  Total number of paths / destination ports: 128 / 39
+-------------------------------------------------------------------------
+Delay:               1.027ns (Levels of Logic = 1)
+  Source:            l1/g1[2].f1/buf_7 (FF)
+  Destination:       l1/g1[3].f1/buf_7 (FF)
+  Source Clock:      clk rising
+  Destination Clock: clk rising
+
+  Data Path: l1/g1[2].f1/buf_7 to l1/g1[3].f1/buf_7
+                                Gate     Net
+    Cell:in->out      fanout   Delay   Delay  Logical Name (Net Name)
+    ----------------------------------------  ------------
+     FDC:C->Q              2   0.361   0.561  l1/g1[2].f1/buf_7 (l1/g1[2].f1/buf_7)
+     LUT4:I0->O            1   0.097   0.000  l1/g1[3].f1/buf_7_rstpot (l1/g1[3].f1/buf_7_rstpot)
+     FDC:D                     0.008          l1/g1[3].f1/buf_7
+    ----------------------------------------
+    Total                      1.027ns (0.466ns logic, 0.561ns route)
+                                       (45.4% logic, 54.6% route)
+
+=========================================================================
+Timing constraint: Default OFFSET IN BEFORE for Clock 'clk'
+  Total number of paths / destination ports: 57 / 49
+-------------------------------------------------------------------------
+Offset:              0.737ns (Levels of Logic = 1)
+  Source:            reset (PAD)
+  Destination:       l1/g1[3].f1/rd_prev (FF)
+  Destination Clock: clk rising
+
+  Data Path: reset to l1/g1[3].f1/rd_prev
+                                Gate     Net
+    Cell:in->out      fanout   Delay   Delay  Logical Name (Net Name)
+    ----------------------------------------  ------------
+     IBUF:I->O            39   0.001   0.387  reset_IBUF (reset_IBUF)
+     FDC:CLR                   0.349          l1/g1[3].f1/rd_prev
+    ----------------------------------------
+    Total                      0.737ns (0.350ns logic, 0.387ns route)
+                                       (47.5% logic, 52.5% route)
+
+=========================================================================
+Timing constraint: Default OFFSET OUT AFTER for Clock 'clk'
+  Total number of paths / destination ports: 24 / 24
+-------------------------------------------------------------------------
+Offset:              0.654ns (Levels of Logic = 1)
+  Source:            l1/g1[3].f1/buf_7 (FF)
+  Destination:       Wf0<7> (PAD)
+  Source Clock:      clk rising
+
+  Data Path: l1/g1[3].f1/buf_7 to Wf0<7>
+                                Gate     Net
+    Cell:in->out      fanout   Delay   Delay  Logical Name (Net Name)
+    ----------------------------------------  ------------
+     FDC:C->Q              4   0.361   0.293  l1/g1[3].f1/buf_7 (l1/g1[3].f1/buf_7)
+     OBUF:I->O                 0.000          Wf0_7_OBUF (Wf0<7>)
+    ----------------------------------------
+    Total                      0.654ns (0.361ns logic, 0.293ns route)
+                                       (55.2% logic, 44.8% route)
+
+=========================================================================
+
+Cross Clock Domains Report:
+--------------------------
+
+Clock to Setup on destination clock clk
+---------------+---------+---------+---------+---------+
+               | Src:Rise| Src:Fall| Src:Rise| Src:Fall|
+Source Clock   |Dest:Rise|Dest:Rise|Dest:Fall|Dest:Fall|
+---------------+---------+---------+---------+---------+
+clk            |    1.027|         |         |         |
+---------------+---------+---------+---------+---------+
+
+=========================================================================
+
+
+Total REAL time to Xst completion: 11.00 secs
+Total CPU time to Xst completion: 11.32 secs
+ 
+--> 
+
+Total memory usage is 4612388 kilobytes
+
+Number of errors   :    0 (   0 filtered)
+Number of warnings :   76 (   0 filtered)
+Number of infos    :   72 (   0 filtered)
+
