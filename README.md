@@ -1,2 +1,6 @@
 # Router Implementation vhdl
- Network on chip Router code
+### IMPLEMENTATION OF ROUTER ON NETWORK-ON- CHIP  (NOC)                      
+Network-on-Chip (NoC) is an advance design method of communication network into System-on-Chip (SoC). It provides solution to the problems of traditional bus-based SoC.  It is widely considered that NoC will take the place of traditional bus-based design and will meet the communication requirements of next SoC design. A router is the key component and called as the communication backbone in NoC. The work presented in this Report is  concerned with the design of a router as a basic component in the network on chip using Very High speed integrated circuit Hardware Description Language (VHDL). The design is implemented in VHDL and simulated in Xilinx ISE Design Suite 14.7.The designed router deals with packet based data transfer. A  8- bit packets are used in each router port. The architecture proposed in this report supports five connections simultaneously without any communication bottleneck, and improve the speed of communication on NOC router. 
+### MICROARCHITECTURE OF A ROUTER:
+![image](https://github.com/GayathriMatcha/Router-Implementation-vhdl/assets/98030485/19d7baca-0fb2-4887-9b54-9afa19129120)
+
